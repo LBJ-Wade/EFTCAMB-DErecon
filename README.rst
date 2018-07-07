@@ -26,12 +26,3 @@ Running instructions
 
 ./xDE_sampler_sources params_counts.ini
 
-Branches
-=============================
-
-The master branch contains latest changes to the main release version.
-
-CAMB_sources is the updated public `CAMB Sources <http://camb.info/sources/>`_ code.
-
-The vehre_formatted branch is a developement version, which integrates CAMB and CAMB sources, and uses Fortran 2008 (and hence requires gfortran 6).
-This branch also has an integrated test suite, which runs on Travis automatically for new commits.
