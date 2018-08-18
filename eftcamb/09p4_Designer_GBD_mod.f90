@@ -83,7 +83,7 @@ module EFTCAMB_designer_GBD_2
         type(equispaced_linear_interpolate_function_1D) :: EFTc           !< The interpolated funtcion c (and derivatives).
 
         ! some designer parameters:
-        integer  :: designer_num_points = 10000                           !< Number of points sampled by the designer code.
+        integer  :: designer_num_points = 100000                           !< Number of points sampled by the designer code.
         real(dl) :: x_initial           = log(10._dl**(-8._dl))           !< log(a start)
         real(dl) :: x_final             = 0.0_dl                          !< log(a final)
 
@@ -358,6 +358,7 @@ contains
         logical,                        intent(out)     :: success          !< whether the background initialization succeded or not
 
         real(dl) :: phi_i, dphi_i
+        real(dl) :: init_lambda
 
 
         !> some feedback
@@ -370,11 +371,13 @@ contains
         !> some temporary output
         write(*,*) "GBD designer: a_ini, dphi_ini, xi:", exp(self%x_initial), self%dphi_ini, self%xi
 
+        !> intial value of Lambda
+        init_lambda = - 3._dl * params_cache%h0_Mpc**2 * params_cache%omegav *self%DesGBDxDE%value(exp(self%x_initial))
 
         !> initialize interpolating functions
-        call self%EFTOmega%initialize   ( self%designer_num_points, self%x_initial, self%x_final )
-        call self%EFTLambda%initialize  ( self%designer_num_points, self%x_initial, self%x_final )
-        call self%EFTc%initialize       ( self%designer_num_points, self%x_initial, self%x_final )
+        call self%EFTOmega%initialize   ( self%designer_num_points, self%x_initial, self%x_final, null_value=0.d0 )
+        call self%EFTLambda%initialize  ( self%designer_num_points, self%x_initial, self%x_final, null_value=init_lambda )
+        call self%EFTc%initialize       ( self%designer_num_points, self%x_initial, self%x_final, null_value=0.d0 )
 
 
         !> Re-introducing this at some point
