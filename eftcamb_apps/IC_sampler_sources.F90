@@ -639,68 +639,68 @@ logical :: DoCounts = .false.
     write(*,*) " Opening the files."
     !> opening the files for the plots
 
-    open(unit=31, file = trim(outroot) // 'IC_cls_TT.dat',     status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=31, file = trim(outroot) // 'IC_cls_TT.dat',     status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_cls_TT.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=30, file = trim(outroot) // 'IC_cls_TxW1.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=30, file = trim(outroot) // 'IC_cls_TxW1.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining IC_cls_TxW1.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=217, file = trim(outroot) // 'IC_cls_TxW2.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=217, file = trim(outroot) // 'IC_cls_TxW2.dat',  status='unknown', iostat=xDE_iostat, iomsg=xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_cls_TxW2.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=35, file = trim(outroot) // 'IC_cls_TxW3.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=35, file = trim(outroot) // 'IC_cls_TxW3.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg,recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_cls_TxW3.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=36, file = trim(outroot) // 'IC_cls_W1xW1.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=36, file = trim(outroot) // 'IC_cls_W1xW1.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsgrecl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_cls_W1xW1.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=37, file = trim(outroot) // 'IC_cls_W2xW2.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=37, file = trim(outroot) // 'IC_cls_W2xW2.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsgrecl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_cls_W2xW2.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=38, file = trim(outroot) // 'IC_cls_W3xW3.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=38, file = trim(outroot) // 'IC_cls_W3xW3.dat',  status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_cls_W3xW3.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=32, file = trim(outroot) // 'IC_delta_Om.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=32, file = trim(outroot) // 'IC_delta_Om.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_delta_Om.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=88, file = trim(outroot) // 'IC_EFTOmega.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=88, file = trim(outroot) // 'IC_EFTOmega.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining xDE_EFTOmega.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
 
-    open(unit=98, file = trim(outroot) // 'scale_factor.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=98, file = trim(outroot) // 'scale_factor.dat',   status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining scale_factor.dat failed with', xDE_iostat, xDE_iomsg
         !pause
     end if
 
-    open(unit=22, file = trim(outroot) // 'init_cond.dat',      status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg)
+    open(unit=22, file = trim(outroot) // 'init_cond.dat',      status = 'unknown', iostat = xDE_iostat, iomsg = xDE_iomsg, recl=99999 )
     if (xDE_iostat /= 0 ) then
         write(*,*) 'Opeining init_cond.dat failed with', xDE_iostat, xDE_iomsg
         !pause

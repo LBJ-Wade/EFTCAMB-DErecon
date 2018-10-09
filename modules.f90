@@ -341,7 +341,8 @@
 
     real(dl), parameter :: OmegaKFlat = 5e-7_dl !Value at which to use flat code
 
-    real(dl),parameter :: tol=1.0d-4 !Base tolerance for integrations
+    !real(dl),parameter :: tol=1.0d-4 !Base tolerance for integrations
+    real(dl),parameter :: tol=8.0d-4 !Base tolerance for integrations
 
     !     used as parameter for spline - tells it to use 'natural' end values
     real(dl), parameter :: spl_large=1.e40_dl
@@ -2992,6 +2993,138 @@ module MassiveNu
 
     end subroutine Transfer_SaveMatterPower
 
+!>--------------------------------------------------------------------------------------
+subroutine Transfer_Sampling_SaveMatterPower(MTrans, FileNames, save_k_array)
+    use IniFile
+    !Export files of total  matter power spectra in h^{-1} Mpc units, against k/h.
+    Type(MatterTransferData), intent(in) :: MTrans
+    character(LEN=Ini_max_string_len), intent(IN) :: FileNames(*)
+    integer itf,in,i
+    integer points
+    real, dimension(:,:,:), allocatable :: outpower
+    real minkh,dlnkh
+    Type(MatterPowerData) :: PK_data
+    integer ncol
+    !logical, intent(in), optional :: all21cm
+    logical :: all21 = .false.
+    !JD 08/13 Changes in here to PK arrays and variables
+    integer itf_PK
+    integer unit
+    character(name_tag_len) :: columns(3)
+    logical, intent(in) :: save_k_array
+    character(LEN=Ini_max_string_len) :: k_array_file
+
+    logical :: exist
+
+    ncol = 1
+
+    if (CP%InitPower%nn>1 .and. output_file_headers) error stop 'InitPower%nn>1 deprecated'
+
+    do itf=1, CP%Transfer%PK_num_redshifts
+        if (FileNames(itf) /= '') then
+            if (.not. transfer_interp_matterpower ) then
+                itf_PK = CP%Transfer%PK_redshifts_index(itf)
+
+                points = MTrans%num_q_trans
+                allocate(outpower(points,CP%InitPower%nn,ncol))
+
+                do in = 1, CP%InitPower%nn
+                    !Sources
+                    if (all21) then
+                        call Transfer_Get21cmPowerData(MTrans, PK_data, in, itf_PK)
+                    else
+                        call Transfer_GetMatterPowerData(MTrans, PK_data, in, itf_PK)
+                        !JD 08/13 for nonlinear lensing of CMB + LSS compatibility
+                        !Changed (CP%NonLinear/=NonLinear_None) to CP%NonLinear/=NonLinear_none .and. CP%NonLinear/=NonLinear_Lens)
+                        if(CP%NonLinear/=NonLinear_none .and. CP%NonLinear/=NonLinear_Lens)&
+                            call MatterPowerdata_MakeNonlinear(PK_Data)
+                    end if
+
+                    outpower(:,in,1) = exp(PK_data%matpower(:,1))
+                    !Sources
+                    if (all21) then
+                        outpower(:,in,3) = exp(PK_data%vvpower(:,1))
+                        outpower(:,in,2) = exp(PK_data%vdpower(:,1))
+
+                        outpower(:,in,1) = outpower(:,in,1)/1d10*pi*twopi/MTrans%TransferData(Transfer_kh,:,1)**3
+                        outpower(:,in,2) = outpower(:,in,2)/1d10*pi*twopi/MTrans%TransferData(Transfer_kh,:,1)**3
+                        outpower(:,in,3) = outpower(:,in,3)/1d10*pi*twopi/MTrans%TransferData(Transfer_kh,:,1)**3
+                    end if
+
+                    call MatterPowerdata_Free(PK_Data)
+                end do
+
+
+                !> modifying the way to write on file here
+
+                !> modifying the way to write on file here
+                inquire(file=FileNames(itf), exist=exist)
+                if (exist) then
+                    open(unit=1, file=FileNames(itf), status="old", position="append", action="write")
+                else
+                    open(unit=1, file=FileNames(itf), status="new", action="write")
+                end if
+
+                !open(unit = 1, file = FileNames(itf), status = 'old', position = 'append', recl=99999)
+                !columns = ['P   ', 'P_vd','P_vv']
+                !unit = open_file_header(FileNames(itf), 'k/h', columns(:ncol), 15)
+                if ( save_k_array ) then
+                    k_array_file = FileNames(itf)(:INDEX(FileNames(itf), '.dat', back=.false.)-1)  // '_k_array.dat'
+
+                    open(unit = 2, file = k_array_file, status = 'unknown')
+                    do i =1, points
+                        write(2,*)  MTrans%TransferData(Transfer_kh,i,1)
+                    end do
+                    close(2)
+                end if
+
+                write(1, '(*(E15.5))') outpower(:,1,1)
+                close(1)
+            else
+                if (all21) stop 'Transfer_SaveMatterPower: if output all assume not interpolated'
+                minkh = 1e-4
+                dlnkh = 0.02
+                points = log(MTrans%TransferData(Transfer_kh,MTrans%num_q_trans,itf)/minkh)/dlnkh+1
+                !             dlnkh = log(MTrans%TransferData(Transfer_kh,MTrans%num_q_trans,itf)/minkh)/(points-0.999)
+                allocate(outpower(points,CP%InitPower%nn,1))
+                do in = 1, CP%InitPower%nn
+                    call Transfer_GetMatterPowerS(MTrans,outpower(1,in,1), itf, in, minkh,dlnkh, points)
+                end do
+
+                !> modifying the way to write on file here
+                inquire(file=FileNames(itf), exist=exist)
+                if (exist) then
+                    open(unit=1, file=FileNames(itf), status="old", position="append", action="write")
+                else
+                    open(unit=1, file=FileNames(itf), status="new", action="write")
+                end if
+
+                !open(unit = 1, file = FileNames(itf), status = 'old', position = 'append', recl=99999)
+                !columns = ['P   ', 'P_vd','P_vv']
+                !unit = open_file_header(FileNames(itf), 'k/h', columns(:ncol), 15)
+                if ( save_k_array ) then
+                    k_array_file = FileNames(itf)(:INDEX(FileNames(itf), '.dat', back=.false.)-1)  // '_k_array.dat'
+                    open(unit = 2, file = k_array_file , status = 'unknown')
+                    do i =1, points
+                        write(2,*)  minkh*exp((i-1)*dlnkh)
+                    end do
+                    close(2)
+                end if
+
+                write(1, '(*(E15.5))') outpower(:,1,1)
+                close(1)
+
+            end if
+
+            deallocate(outpower)
+
+        end if
+    end do
+
+end subroutine Transfer_Sampling_SaveMatterPower
+
+!>----------------------------------------------------------------------------------------------------------
+
 
     subroutine Transfer_Get21cmPowerData(MTrans, PK_data, in, z_ix)
     !In terms of k, not k/h, and k^3 P_k /2pi rather than P_k
@@ -3241,7 +3374,9 @@ module MassiveNu
     subroutine Transfer_SortAndIndexRedshifts(P)
     Type(TransferParams) :: P
     integer i, iPK, iNLL
-    real(dl), parameter :: tol = 1.d-5
+!> AZ modi
+     real(dl), parameter :: tol = 1.d-5
+    !real(dl), parameter :: tol = 1.d-2
 
     i=0
     iPK=1
@@ -3902,7 +4037,11 @@ module MassiveNu
     if (CP%WantTensors) then
         dtau0=max(taurst/40,Maxtau/2000._dl/AccuracyBoost)
     else
+!> AZ MOD for EFTCAMB:
+write(*,*) 'Setting the number of points'
         dtau0=Maxtau/500._dl/AccuracyBoost
+        !dtau0=Maxtau/5500._dl/AccuracyBoost
+
         if (do_bispectrum) dtau0 = dtau0/3
         !Don't need this since adding in Limber on small scales
         !  if (CP%DoLensing) dtau0=dtau0/2
@@ -3910,6 +4049,10 @@ module MassiveNu
     end if
 
     call Ranges_Add_delta(TimeSteps,taurend, CP%tau0, dtau0)
+
+!AZ MOD
+write(*,*) 'TimeSteps npoints:', TimeSteps%npoints
+
 
     !Sources
 
