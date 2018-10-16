@@ -3086,34 +3086,37 @@ subroutine Transfer_Sampling_SaveMatterPower(MTrans, FileNames, save_k_array)
                 dlnkh = 0.02
                 points = log(MTrans%TransferData(Transfer_kh,MTrans%num_q_trans,itf)/minkh)/dlnkh+1
                 !             dlnkh = log(MTrans%TransferData(Transfer_kh,MTrans%num_q_trans,itf)/minkh)/(points-0.999)
-                allocate(outpower(points,CP%InitPower%nn,1))
-                do in = 1, CP%InitPower%nn
-                    call Transfer_GetMatterPowerS(MTrans,outpower(1,in,1), itf, in, minkh,dlnkh, points)
-                end do
-
-                !> modifying the way to write on file here
-                inquire(file=FileNames(itf), exist=exist)
-                if (exist) then
-                    open(unit=1, file=FileNames(itf), status="old", position="append", action="write")
-                else
-                    open(unit=1, file=FileNames(itf), status="new", action="write")
-                end if
-
-                !open(unit = 1, file = FileNames(itf), status = 'old', position = 'append', recl=99999)
-                !columns = ['P   ', 'P_vd','P_vv']
-                !unit = open_file_header(FileNames(itf), 'k/h', columns(:ncol), 15)
-                if ( save_k_array ) then
-                    k_array_file = FileNames(itf)(:INDEX(FileNames(itf), '.dat', back=.false.)-1)  // '_k_array.dat'
-                    open(unit = 2, file = k_array_file , status = 'unknown')
-                    do i =1, points
-                        write(2,*)  minkh*exp((i-1)*dlnkh)
+                if ( points > 3 ) then
+                    allocate(outpower(points,CP%InitPower%nn,1))
+                    do in = 1, CP%InitPower%nn
+                        call Transfer_GetMatterPowerS(MTrans,outpower(1,in,1), itf, in, minkh,dlnkh, points)
                     end do
-                    close(2)
+
+                    !> modifying the way to write on file here
+                    inquire(file=FileNames(itf), exist=exist)
+                    if (exist) then
+                        open(unit=1, file=FileNames(itf), status="old", position="append", action="write")
+                    else
+                        open(unit=1, file=FileNames(itf), status="new", action="write")
+                    end if
+
+                    !open(unit = 1, file = FileNames(itf), status = 'old', position = 'append', recl=99999)
+                    !columns = ['P   ', 'P_vd','P_vv']
+                    !unit = open_file_header(FileNames(itf), 'k/h', columns(:ncol), 15)
+                    if ( save_k_array ) then
+                        k_array_file = FileNames(itf)(:INDEX(FileNames(itf), '.dat', back=.false.)-1)  // '_k_array.dat'
+                        open(unit = 2, file = k_array_file , status = 'unknown')
+                        do i =1, points
+                            write(2,*)  minkh*exp((i-1)*dlnkh)
+                        end do
+                        close(2)
+                    end if
+
+                    write(1, '(*(E15.5))') outpower(:,1,1)
+                    close(1)
+                else
+                    write(*,*) 'npoints<3, skipping P(k) output.'
                 end if
-
-                write(1, '(*(E15.5))') outpower(:,1,1)
-                close(1)
-
             end if
 
             deallocate(outpower)
