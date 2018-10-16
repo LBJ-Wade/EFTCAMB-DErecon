@@ -3080,6 +3080,7 @@ subroutine Transfer_Sampling_SaveMatterPower(MTrans, FileNames, save_k_array)
 
                 write(1, '(*(E15.5))') outpower(:,1,1)
                 close(1)
+                deallocate(outpower)
             else
                 if (all21) stop 'Transfer_SaveMatterPower: if output all assume not interpolated'
                 minkh = 1e-4
@@ -3087,7 +3088,9 @@ subroutine Transfer_Sampling_SaveMatterPower(MTrans, FileNames, save_k_array)
                 points = log(MTrans%TransferData(Transfer_kh,MTrans%num_q_trans,itf)/minkh)/dlnkh+1
                 !             dlnkh = log(MTrans%TransferData(Transfer_kh,MTrans%num_q_trans,itf)/minkh)/(points-0.999)
                 if ( points > 3 ) then
+    
                     allocate(outpower(points,CP%InitPower%nn,1))
+
                     do in = 1, CP%InitPower%nn
                         call Transfer_GetMatterPowerS(MTrans,outpower(1,in,1), itf, in, minkh,dlnkh, points)
                     end do
@@ -3114,12 +3117,13 @@ subroutine Transfer_Sampling_SaveMatterPower(MTrans, FileNames, save_k_array)
 
                     write(1, '(*(E15.5))') outpower(:,1,1)
                     close(1)
+                    deallocate(outpower)
                 else
                     write(*,*) 'npoints<3, skipping P(k) output.'
                 end if
             end if
 
-            deallocate(outpower)
+
 
         end if
     end do
